@@ -1,7 +1,7 @@
 using System.Text.Json;
 using PstInventory.Core.model;
 
-namespace PstInventory.Core.impl;
+namespace PstInventory.Core.repository.impl;
 
 public class FileEquipmentRepository : IEquipmentRepository
 {

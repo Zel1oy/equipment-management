@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace EquipmentManagement
@@ -21,7 +21,7 @@ namespace EquipmentManagement
             List<Equipment> equipmentList = new List<Equipment>
             {
                 new Equipment { Id = 1, Назва = "Ноутбук HP ProBook 450", ІнвентарнийНомер = "INV-00213", Категорія = "Комп’ютерна техніка", Статус = "У використанні", Відповідальний = "Іваненко І.І." },
-                new Equipment { Id = 2, Назва = "Мікроскоп Leica", ІнвентарнийНомер = "INV-00487", Категорія = "Лабораторне обладнання", Статус = "На ремонті", Відповідальний = "Петренко П.П." },
+                new Equipment { Id = 2, Назва = "Принтер Canon", ІнвентарнийНомер = "INV-00487", Категорія = "Комп’ютерна техніка", Статус = "На ремонті", Відповідальний = "Петренко П.П." },
                 new Equipment { Id = 3, Назва = "Проектор Epson EB-X05", ІнвентарнийНомер = "INV-00145", Категорія = "Мультимедіа", Статус = "У резерві", Відповідальний = "-" }
             };
 

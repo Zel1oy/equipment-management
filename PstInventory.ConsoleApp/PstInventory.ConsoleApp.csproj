@@ -11,4 +11,8 @@
       <ProjectReference Include="..\PstInventory.Core\PstInventory.Core.csproj" />
     </ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\UI\UI.csproj" />
+	</ItemGroup>
+
 </Project>

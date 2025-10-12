@@ -20,7 +20,7 @@ public class EquipmentService
         return _items;
     }
 
-    private Equipment? FindEquipmentByInventoryNumber(string inventoryNumber)
+    public Equipment? FindEquipmentByInventoryNumber(string inventoryNumber)
     {
         return string.IsNullOrWhiteSpace(inventoryNumber) ? null
             : _items.FirstOrDefault(item => item.InventoryNumber.Equals(inventoryNumber, StringComparison.OrdinalIgnoreCase));

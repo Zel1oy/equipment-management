@@ -1,21 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace EquipmentManagement
-{
+﻿{
     class Program
     {
-        // Клас обладнання
-        class Equipment
-        {
-            public int Id { get; set; }
-            public string Назва { get; set; }
-            public string ІнвентарнийНомер { get; set; }
-            public string Категорія { get; set; }
-            public string Статус { get; set; }
-            public string Відповідальний { get; set; }
-        }
-
         static void Main(string[] args)
         {
             List<Equipment> equipmentList = new List<Equipment>

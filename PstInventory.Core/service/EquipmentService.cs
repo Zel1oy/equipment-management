@@ -1,83 +1,73 @@
 using PstInventory.Core.enums;
 using PstInventory.Core.model;
+using PstInventory.Core.repository;
 
 namespace PstInventory.Core.service;
 
-public class EquipmentService
+public class EquipmentService(IEquipmentRepository repository)
 {
-    private readonly IEquipmentRepository _repository;
-
-    private List<Equipment> _items;
-
-    public EquipmentService(IEquipmentRepository repository)
+    public IEnumerable<Equipment> GetAllEquipment()
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _items = _repository.GetAll();
+        return repository.GetAll();
     }
     
-    public List<Equipment> GetAllEquipment()
+    public Equipment? GetEquipmentById(int id)
     {
-        return _items;
+        return repository.GetById(id);
     }
 
-    public Equipment? FindEquipmentByInventoryNumber(string inventoryNumber)
-    {
-        return string.IsNullOrWhiteSpace(inventoryNumber) ? null
-            : _items.FirstOrDefault(item => item.InventoryNumber.Equals(inventoryNumber, StringComparison.OrdinalIgnoreCase));
-    }
-    
     public void AddEquipment(string name, string inventoryNumber, string location, string assignedTo)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Equipment name cannot be empty.", nameof(name));
+            throw new ArgumentException("Equipment name cannot be empty.");
+        
         if (string.IsNullOrWhiteSpace(inventoryNumber))
-            throw new ArgumentException("Inventory number cannot be empty.", nameof(inventoryNumber));
+            throw new ArgumentException("Inventory number cannot be empty.");
 
-        if (FindEquipmentByInventoryNumber(inventoryNumber) != null)
+        var existing = repository.FindByInventoryNumber(inventoryNumber);
+        if (existing != null)
             throw new InvalidOperationException($"An item with inventory number '{inventoryNumber}' already exists.");
-
-        var nextId = _items.Count != 0 ? _items.Max(item => item.Id) + 1 : 1;
 
         var newItem = new Equipment
         {
-            Id = nextId,
             Name = name,
             InventoryNumber = inventoryNumber,
             Location = location,
-            DateOfPurchase = DateTime.Now,
-            Status = EquipmentStatus.InStock,
-            AssignedTo = assignedTo ?? "N/A"
+            AssignedTo = assignedTo ?? "N/A",
+            DateOfPurchase = DateTime.UtcNow,
+            Status = EquipmentStatus.InStock
         };
-
-        _items.Add(newItem);
-        _repository.SaveAll(_items);
+        
+        repository.Add(newItem);
     }
-    
-    public bool UpdateEquipmentStatus(string inventoryNumber, EquipmentStatus newStatus)
+
+    public void UpdateEquipment(Equipment equipment)
     {
-        var itemToUpdate = FindEquipmentByInventoryNumber(inventoryNumber);
+        if (equipment == null)
+            throw new ArgumentNullException(nameof(equipment));
+    
+        if (string.IsNullOrWhiteSpace(equipment.Name))
+            throw new ArgumentException("Equipment name cannot be empty.");
 
-        if (itemToUpdate == null)
-        {
-            return false;
-        }
+        var existing = repository.GetById(equipment.Id);
+        if (existing == null)
+            throw new InvalidOperationException($"No equipment found with ID {equipment.Id} to update.");
+    
+        var conflicting = repository.FindByInventoryNumber(equipment.InventoryNumber);
+        if (conflicting != null && conflicting.Id != equipment.Id)
+            throw new InvalidOperationException($"An item with inventory number '{equipment.InventoryNumber}' already exists.");
 
-        itemToUpdate.Status = newStatus;
-        _repository.SaveAll(_items);
-        return true;
+        repository.Update(equipment);
     }
-    
-    public bool DeleteEquipment(string inventoryNumber)
+
+    public void DeleteEquipment(int id)
     {
-        var itemToDelete = FindEquipmentByInventoryNumber(inventoryNumber);
-
-        if (itemToDelete == null)
+        var equipment = repository.GetById(id);
+        if (equipment == null)
         {
-            return false;
+            throw new InvalidOperationException($"No equipment found with ID {id} to delete.");
         }
-
-        _items.Remove(itemToDelete);
-        _repository.SaveAll(_items);
-        return true;
+        
+        repository.Delete(equipment);
     }
 }

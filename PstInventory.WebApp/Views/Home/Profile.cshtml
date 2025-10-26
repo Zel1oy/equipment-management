@@ -1,0 +1,50 @@
+@using System.Security.Claims
+@model ClaimsPrincipal
+
+@{
+    ViewData["Title"] = "User Profile";
+    // We get the Full Name and Phone from the user's metadata claims
+    var fullName = Model.Claims.FirstOrDefault(c => c.Type == "https://your-app-domain/full_name")?.Value;
+    var phone = Model.Claims.FirstOrDefault(c => c.Type == "https://your-app-domain/phone_number")?.Value;
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h4>Hello, @Model.Identity.Name!</h4>
+
+<p>This page shows all the information your application has received from the identity provider (Auth0).</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Identity.Name</dd>
+
+    <dt class="col-sm-3">Full Name</dt>
+    <dd class="col-sm-9">@(fullName ?? "Not Provided")</dd>
+
+    <dt class="col-sm-3">Phone</dt>
+    <dd class="col-sm-9">@(phone ?? "Not Provided")</dd>
+
+    <dt class="col-sm-3">Unique User ID</dt>
+    <dd class="col-sm-9">@Model.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value</dd>
+</dl>
+
+<hr />
+
+<h5>All Claims</h5>
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th>Claim Type (Name)</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var claim in Model.Claims)
+    {
+        <tr>
+            <td>@claim.Type</td>
+            <td>@claim.Value</td>
+        </tr>
+    }
+    </tbody>
+</table>

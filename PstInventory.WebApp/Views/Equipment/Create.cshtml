@@ -1,0 +1,51 @@
+@model PstInventory.WebApp.ViewModels.EquipmentCreateViewModel
+
+@{
+    ViewData["Title"] = "Add New Equipment";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="InventoryNumber" class="control-label"></label>
+                <input asp-for="InventoryNumber" class="form-control" />
+                <span asp-validation-for="InventoryNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Location" class="control-label"></label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="AssignedTo" class="control-label"></label>
+                <input asp-for="AssignedTo" class="form-control" />
+                <span asp-validation-for="AssignedTo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* This is needed for client-side validation (to show errors *before* submitting) *@
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

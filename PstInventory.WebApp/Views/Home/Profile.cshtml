@@ -3,48 +3,77 @@
 
 @{
     ViewData["Title"] = "User Profile";
-    // We get the Full Name and Phone from the user's metadata claims
-    var fullName = Model.Claims.FirstOrDefault(c => c.Type == "https://your-app-domain/full_name")?.Value;
-    var phone = Model.Claims.FirstOrDefault(c => c.Type == "https://your-app-domain/phone_number")?.Value;
+    
+    // --- Define the keys for your custom claims ---
+    // These MUST match the namespace you used in the Auth0 Action
+    string usernameClaim = "https://pst-inventory.com/claims/username";
+    string fullNameClaim = "https://pst-inventory.com/claims/full_name";
+    string phoneClaim = "https://pst-inventory.com/claims/phone_number";
+
+    // --- Get the values ---
+    var email = Model.Identity.Name;
+    var username = Model.Claims.FirstOrDefault(c => c.Type == usernameClaim)?.Value;
+    var fullName = Model.Claims.FirstOrDefault(c => c.Type == fullNameClaim)?.Value;
+    var phone = Model.Claims.FirstOrDefault(c => c.Type == phoneClaim)?.Value;
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Мій профіль</h2>
+            </div>
+            <div class="card-body">
+                
+                <div class="text-center mb-4">
+                    <img src="https://www.gravatar.com/avatar/@(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.ASCII.GetBytes(email.ToLower().Trim())).Select(b => b.ToString("x2")).Aggregate((s1,s2) => s1 + s2))?s=150&d=mp" 
+                         class="rounded-circle" 
+                         alt="Profile Picture" />
+                    <h3 class="mt-3">@(fullName ?? username ?? "User")</h3>
+                    <p class="text-muted">@email</p>
+                </div>
 
-<h4>Hello, @Model.Identity.Name!</h4>
+                <h5 class="card-title">Контактна інформація</h5>
+                <ul class="list-group list-group-flush">
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>Логін (Username)</strong>
+                        <span>@(username ?? "N/A")</span>
+                    </li>
 
-<p>This page shows all the information your application has received from the identity provider (Auth0).</p>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>Повне ім'я (ПІБ)</strong>
+                        <span>@(fullName ?? "Not Provided")</span>
+                    </li>
 
-<dl class="row">
-    <dt class="col-sm-3">Email</dt>
-    <dd class="col-sm-9">@Model.Identity.Name</dd>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>Телефон</strong>
+                        <span>@(phone ?? "Not Provided")</span>
+                    </li>
 
-    <dt class="col-sm-3">Full Name</dt>
-    <dd class="col-sm-9">@(fullName ?? "Not Provided")</dd>
+                </ul>
 
-    <dt class="col-sm-3">Phone</dt>
-    <dd class="col-sm-9">@(phone ?? "Not Provided")</dd>
+                <hr />
+                
+                <h5 class="card-title mt-4">Всі дані з токену</h5>
+                <p class="card-text small">Це всі "claims", які ваш додаток отримав від Auth0. (Для налагодження)</p>
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-striped">
+                        <tbody>
+                        @foreach (var claim in Model.Claims.OrderBy(c => c.Type))
+                        {
+                            <tr>
+                                <td><strong>@claim.Type.Split('/').Last()</strong></td>
+                                <td class="text-truncate" style="max-width: 200px;">@claim.Value</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
 
-    <dt class="col-sm-3">Unique User ID</dt>
-    <dd class="col-sm-9">@Model.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value</dd>
-</dl>
+            </div>
+        </div>
 
-<hr />
-
-<h5>All Claims</h5>
-<table class="table table-sm table-striped">
-    <thead>
-    <tr>
-        <th>Claim Type (Name)</th>
-        <th>Value</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var claim in Model.Claims)
-    {
-        <tr>
-            <td>@claim.Type</td>
-            <td>@claim.Value</td>
-        </tr>
-    }
-    </tbody>
-</table>
+    </div>
+</div>

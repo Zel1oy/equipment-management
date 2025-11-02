@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlite(connectionString, b => b.MigrationsAssembly("PstInventory.Infrastructure")));
 
 builder.Services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
 
@@ -17,22 +17,39 @@ builder.Services.AddScoped<EquipmentService>();
 
 builder.Services
     .AddAuth0WebAppAuthentication(options => {
-        // These values are read from your user secrets file
         options.Domain = builder.Configuration["Auth0:Domain"];
         options.ClientId = builder.Configuration["Auth0:ClientId"];
         options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
     });
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// --- START: THIS IS THE MISSING CODE ---
+// This code block runs on startup and applies your database migrations.
+// We are leaving the try-catch out so that if migration fails,
+// the app will crash and show you the REAL error.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = services.GetRequiredService<AppDbContext>();
+
+    logger.LogInformation("Attempting to apply database migrations...");
+    
+    // This command creates the database and all tables.
+    context.Database.Migrate();
+    
+    logger.LogInformation("Database migrations applied successfully.");
+}
+// --- END: THIS IS THE MISSING CODE ---
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -41,6 +58,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// This was in the wrong place. It must come AFTER UseRouting.
+app.UseAuthentication(); // <-- ADD THIS LINE
 app.UseAuthorization();
 
 app.MapControllerRoute(

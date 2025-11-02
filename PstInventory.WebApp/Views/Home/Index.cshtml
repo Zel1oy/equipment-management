@@ -1,8 +1,48 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">Система управління та обліку обладнання</h1>
+            <p class="col-md-10 fs-4">
+                Ласкаво просимо до веб-додатку, розробленого в рамках лабораторної роботи №3.
+            </p>
+            <p>
+                Цей проект є ASP.NET Core MVC-системою, призначеною для управління та обліку технічного обладнання кафедри.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Про проект</h2>
+            <p>
+                Цей додаток демонструє ключові принципи сучасної веб-розробки на .NET, включаючи:
+            </p>
+            <ul>
+                <li><strong>Clean Architecture:</strong> Чітке розділення логіки, даних та UI.</li>
+                <li><strong>Entity Framework Core:</strong> Робота з базою даних (SQLite) за допомогою Code-First підходу.</li>
+                <li><strong>Repository & Unit of Work:</strong> Професійні патерни для доступу до даних.</li>
+                <li><strong>Безпека (OAuth2):</strong> Автентифікація користувачів через зовнішній провайдер (Auth0/Okta).</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2>Вимоги Лабораторної №3</h2>
+            <p>
+                Цей додаток виконує наступні вимоги:
+            </p>
+            <ol>
+                <li>Сторінка привітання.</li>
+                <li>Сторінки входу, реєстрації та профілю користувача (через Auth0).</li>
+                <li>Захищені сторінки для роботи з обладнанням (Create, Read, Update, Delete).</li>
+                <li>Вимоги до форми реєстрації (логін, пароль, ПІБ, телефон) налаштовані в Auth0.</li>
+            </ol>
+            <p>
+                Щоб розпочати роботу, будь ласка, увійдіть в систему, використовуючи кнопку "Login" у верхньому правому куті.
+            </p>
+            <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Login">Почати роботу (Login) &raquo;</a>
+        </div>
+    </div>
 </div>

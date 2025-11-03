@@ -26,10 +26,6 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// --- START: THIS IS THE MISSING CODE ---
-// This code block runs on startup and applies your database migrations.
-// We are leaving the try-catch out so that if migration fails,
-// the app will crash and show you the REAL error.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -43,10 +39,7 @@ using (var scope = app.Services.CreateScope())
     
     logger.LogInformation("Database migrations applied successfully.");
 }
-// --- END: THIS IS THE MISSING CODE ---
 
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -58,8 +51,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// This was in the wrong place. It must come AFTER UseRouting.
-app.UseAuthentication(); // <-- ADD THIS LINE
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

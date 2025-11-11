@@ -1,22 +1,30 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using PstInventory.Core.service;
+using PstInventory.Infrastructure.Data;
 using PstInventory.WebApp.ViewModels;
 
 namespace PstInventory.WebApp.Controllers;
 
 [Authorize]
-public class EquipmentController(EquipmentService equipmentService) : Controller
+public class EquipmentController(EquipmentService equipmentService, AppDbContext context) : Controller
 {
     public IActionResult Index()
     {
-        var equipmentList = equipmentService.GetAllEquipment();
+        var equipmentList = context.Equipment
+            .Include(e => e.Category)
+            .Include(e => e.Location)
+            .ToList();
         
         return View(equipmentList);
     }
     
     public IActionResult Create()
     {
+        ViewData["CategoryId"] = new SelectList(context.Categories, "Id", "Name");
+        ViewData["LocationId"] = new SelectList(context.Locations, "Id", "Name");
         return View();
     }
 
@@ -24,23 +32,28 @@ public class EquipmentController(EquipmentService equipmentService) : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Create(EquipmentCreateViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
-        try
+        if (ModelState.IsValid)
         {
-            equipmentService.AddEquipment(
-                model.Name, 
-                model.InventoryNumber, 
-                model.Location, 
-                model.AssignedTo ?? "N/A"
-            );
-            
-            return RedirectToAction(nameof(Index));
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError(string.Empty, $"An error occurred: {ex.Message}");
+            try
+            {
+                equipmentService.AddEquipment(
+                    model.Name, 
+                    model.InventoryNumber, 
+                    model.LocationId,
+                    model.CategoryId,
+                    model.AssignedTo
+                );
+                
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"An error occurred: {ex.Message}");
+            }
         }
 
+        ViewData["CategoryId"] = new SelectList(context.Categories, "Id", "Name", model.CategoryId);
+        ViewData["LocationId"] = new SelectList(context.Locations, "Id", "Name", model.LocationId);
         return View(model);
     }
     
@@ -57,11 +70,14 @@ public class EquipmentController(EquipmentService equipmentService) : Controller
             Id = equipment.Id,
             Name = equipment.Name,
             InventoryNumber = equipment.InventoryNumber,
-            Location = equipment.Location,
             AssignedTo = equipment.AssignedTo,
-            Status = equipment.Status
+            Status = equipment.Status,
+            LocationId = equipment.LocationId,
+            CategoryId = equipment.CategoryId
         };
-
+        
+        ViewData["CategoryId"] = new SelectList(context.Categories, "Id", "Name", viewModel.CategoryId);
+        ViewData["LocationId"] = new SelectList(context.Locations, "Id", "Name", viewModel.LocationId);
         return View(viewModel);
     }
 
@@ -87,7 +103,8 @@ public class EquipmentController(EquipmentService equipmentService) : Controller
 
                 equipmentToUpdate.Name = model.Name;
                 equipmentToUpdate.InventoryNumber = model.InventoryNumber;
-                equipmentToUpdate.Location = model.Location;
+                equipmentToUpdate.LocationId = model.LocationId;
+                equipmentToUpdate.CategoryId = model.CategoryId;
                 equipmentToUpdate.AssignedTo = model.AssignedTo;
                 equipmentToUpdate.Status = model.Status;
 
@@ -101,12 +118,17 @@ public class EquipmentController(EquipmentService equipmentService) : Controller
             }
         }
         
+        ViewData["CategoryId"] = new SelectList(context.Categories, "Id", "Name", model.CategoryId);
+        ViewData["LocationId"] = new SelectList(context.Locations, "Id", "Name", model.LocationId);
         return View(model);
     }
     
     public IActionResult Delete(int id)
     {
-        var equipment = equipmentService.GetEquipmentById(id);
+        var equipment = context.Equipment
+            .Include(e => e.Category)
+            .Include(e => e.Location)
+            .FirstOrDefault(e => e.Id == id);
         if (equipment == null)
         {
             return NotFound();

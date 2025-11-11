@@ -16,7 +16,7 @@ public class EquipmentService(IEquipmentRepository repository)
         return repository.GetById(id);
     }
 
-    public void AddEquipment(string name, string inventoryNumber, string location, string assignedTo)
+    public void AddEquipment(string name, string inventoryNumber, int locationId, int categoryId, string assignedTo)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Equipment name cannot be empty.");
@@ -32,7 +32,8 @@ public class EquipmentService(IEquipmentRepository repository)
         {
             Name = name,
             InventoryNumber = inventoryNumber,
-            Location = location,
+            LocationId = locationId,
+            CategoryId = categoryId,
             AssignedTo = assignedTo ?? "N/A",
             DateOfPurchase = DateTime.UtcNow,
             Status = EquipmentStatus.InStock

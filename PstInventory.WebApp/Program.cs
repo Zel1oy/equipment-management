@@ -19,21 +19,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                 b => b.MigrationsAssembly(migrationsAssembly)
             );
             break;
-        
+
         case "Postgres":
             options.UseNpgsql(
                 builder.Configuration.GetConnectionString("Postgres"),
                 b => b.MigrationsAssembly(migrationsAssembly)
             );
             break;
-        
+
         case "InMemory":
-            // In-Memory doesn't need migrations or a connection string
             options.UseInMemoryDatabase("InMemoryDb");
             break;
 
         case "Sqlite":
-        default: // Use SQLite as the default
+        default:
             options.UseSqlite(
                 builder.Configuration.GetConnectionString("Sqlite"),
                 b => b.MigrationsAssembly(migrationsAssembly)
@@ -42,53 +41,63 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// Register your services (this is unchanged)
+// репозиторій + сервіс
 builder.Services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
 builder.Services.AddScoped<EquipmentService>();
 
-// Configure Auth0 (this is unchanged)
+// Auth0
 builder.Services
-    .AddAuth0WebAppAuthentication(options => {
+    .AddAuth0WebAppAuthentication(options =>
+    {
         options.Domain = builder.Configuration["Auth0:Domain"];
         options.ClientId = builder.Configuration["Auth0:ClientId"];
         options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
     });
 
+// MVC
 builder.Services.AddControllersWithViews();
+
+// Swagger
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();   // без OpenApiInfo
+
 
 var app = builder.Build();
 
-// --- Automatic Migration Block ---
-// This runs migrations on startup
+// міграції
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
     var context = services.GetRequiredService<AppDbContext>();
 
-    // This checks if the provider is In-Memory before trying to migrate
     if (!context.Database.IsInMemory())
     {
         logger.LogInformation("Attempting to apply database migrations...");
-        
-        // This command creates the database and all tables.
         context.Database.Migrate();
-        
         logger.LogInformation("Database migrations applied successfully.");
     }
     else
     {
         logger.LogInformation("Using In-Memory database. Ensuring database is created...");
-        
-        // This command creates the schema AND runs the seed data
         context.Database.EnsureCreated();
-        
         logger.LogInformation("In-Memory database created and seeded.");
     }
 }
 
-// Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
+// pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
+        c.SwaggerEndpoint("/swagger/v2/swagger.json", "Equipment API v2");
+    });
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();

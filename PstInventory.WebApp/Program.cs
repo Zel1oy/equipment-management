@@ -88,17 +88,19 @@ var app = builder.Build();
 
 // pipeline
 if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
-        c.SwaggerEndpoint("/swagger/v2/swagger.json", "Equipment API v2");
-    });
-}
-else
-{
+        app.UseDeveloperExceptionPage();
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
+            
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v2");
+        });
+    }
+
+    else
+    {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
@@ -108,11 +110,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseRouting();
+
+// НІЯКОГО auth, усе відкрито — цього достатньо для ЛР-5
+// app.UseAuthentication();
+// app.UseAuthorization();
+
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 app.Run();

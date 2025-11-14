@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace PstInventory.WebApp.Controllers;
 
-[Authorize]
+//[Authorize]
 public class SearchController : Controller
 {
     private readonly AppDbContext _context;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PstInventory.WebApp.Controllers;
 
-[Authorize] // Protect this whole controller
+//[Authorize] // Protect this whole controller
 public class LocationController : Controller
 {
     private readonly AppDbContext _context;

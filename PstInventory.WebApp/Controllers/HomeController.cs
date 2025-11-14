@@ -24,7 +24,7 @@ public class HomeController : Controller
         return View();
     }
     
-    [Authorize]
+    //[Authorize]
     public IActionResult Profile()
     {
         return View(User);

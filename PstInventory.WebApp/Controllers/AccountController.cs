@@ -17,7 +17,7 @@ public class AccountController : Controller
         await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
     }
     
-    [Authorize]
+   // [Authorize]
     public async Task Logout()
     {
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()

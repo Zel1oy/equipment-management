@@ -6,7 +6,7 @@ using PstInventory.Infrastructure.Data;
 
 namespace PstInventory.WebApp.Controllers;
 
-[Authorize]
+//[Authorize]
 public class CategoryController(AppDbContext context) : Controller
 {
     public async Task<IActionResult> Index()

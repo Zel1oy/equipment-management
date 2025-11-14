@@ -1,27 +1,127 @@
 ﻿@{
-    ViewData["Title"] = "Equipment API v2 UI";
+    ViewData["Title"] = "Новий інтерфейс (v2)";
 }
 
-<h2>Новий інтерфейс (v2)</h2>
+<div class="container mt-4">
+    <h2 class="text-success mb-4">Новий інтерфейс (v2)</h2>
 
-<table id="tbl" class="table table-striped"></table>
+    <p class="text-muted">
+        Оновлена версія працює через REST API (v2), підтримує створення, оновлення та розширені поля.
+    </p>
 
-@section Scripts {
-    <script>
-        async function load() {
-            const res = await fetch('/api/v2/equipment');
-            const items = await res.json();
+    <div class="d-flex gap-3 mb-3">
+        <button class="btn btn-success" onclick="loadV2()">Оновити список</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            Додати обладнання
+        </button>
+    </div>
 
-            document.getElementById('tbl').innerHTML = items
-                .map(i => `<tr>
-                    <td>${i.id}</td>
-                    <td>${i.name}</td>
-                    <td>${i.inventoryNumber}</td>
-                    <td>${i.status}</td>
-                    <td>${i.details ?? ""}</td>
-                </tr>`)
-                .join('');
+    <!-- Таблиця -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover shadow-sm">
+            <thead class="table-success">
+                <tr>
+                    <th>Назва</th>
+                    <th>Інвентарний номер</th>
+                    <th>Закріплено за</th>
+                    <th>Дата придбання</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody id="table-body-v2">
+                <tr><td colspan="5" class="text-muted">Натисніть &laquo;Оновити список&raquo;</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальне вікно додавання -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Додати обладнання</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Назва</label>
+                    <input id="nameInput" class="form-control" placeholder="Наприклад: Ноутбук Dell Latitude">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Інвентарний номер</label>
+                    <input id="invInput" class="form-control" placeholder="FIT-2024-010">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Закріплено за</label>
+                    <input id="assignedInput" class="form-control" placeholder="Лаборант, аудиторія тощо">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Категорія (ID)</label>
+                    <input id="categoryInput" class="form-control" placeholder="1">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Локація (ID)</label>
+                    <input id="locationInput" class="form-control" placeholder="1">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
+                <button class="btn btn-primary" onclick="addEquipment()">Зберегти</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Завантаження списку
+    async function loadV2() {
+        const response = await fetch("/api/v2/equipment");
+        const items = await response.json();
+
+        const table = document.getElementById("table-body-v2");
+        table.innerHTML = "";
+
+        items.forEach(item => {
+            const row = `<tr>
+                <td>${item.name}</td>
+                <td>${item.inventoryNumber}</td>
+                <td>${item.assignedTo ?? "—"}</td>
+                <td>${item.dateOfPurchase?.substring(0, 10) ?? "—"}</td>
+                <td>${item.status}</td>
+            </tr>`;
+            table.innerHTML += row;
+        });
+    }
+
+    // Додавання обладнання
+    async function addEquipment() {
+        const body = {
+            name: document.getElementById("nameInput").value,
+            inventoryNumber: document.getElementById("invInput").value,
+            assignedTo: document.getElementById("assignedInput").value,
+            categoryId: parseInt(document.getElementById("categoryInput").value),
+            locationId: parseInt(document.getElementById("locationInput").value)
+        };
+
+        const response = await fetch("/api/v2/equipment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        if (response.ok) {
+            alert("Обладнання додано!");
+            document.querySelector(".btn-close").click(); // Закрити модальне
+            loadV2();
+        } else {
+            alert("Помилка: " + response.status);
         }
-        load();
-    </script>
-}
+    }
+</script>

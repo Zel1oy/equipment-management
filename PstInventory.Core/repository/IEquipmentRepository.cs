@@ -1,10 +1,13 @@
 using PstInventory.Core.model;
 
-namespace PstInventory.Core;
+namespace PstInventory.Core.repository;
 
 public interface IEquipmentRepository
 {
-    List<Equipment> GetAll();
-    
-    void SaveAll(List<Equipment> items);
+    Equipment? GetById(int id);
+    IEnumerable<Equipment> GetAll();
+    Equipment? FindByInventoryNumber(string inventoryNumber);
+    void Add(Equipment equipment);
+    void Update(Equipment equipment);
+    void Delete(Equipment equipment);
 }

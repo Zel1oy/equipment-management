@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using PstInventory.Core.enums;
 
 namespace PstInventory.Core.model;
@@ -5,10 +6,24 @@ namespace PstInventory.Core.model;
 public class Equipment
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string InventoryNumber { get; set; }
-    public string Location { get; set; }
+    
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = null!;
+
+    [Required]
+    [StringLength(50)]
+    public string InventoryNumber { get; set; } = null!;
+    
+    public int CategoryId { get; set; }
+    public Category Category { get; set; } = null!;
+
+    public int LocationId { get; set; }
+    public Location Location { get; set; } = null!;
+    
     public DateTime DateOfPurchase { get; set; }
     public EquipmentStatus Status { get; set; }
-    public string AssignedTo { get; set; }
+    
+    [StringLength(100)]
+    public string? AssignedTo { get; set; }
 }

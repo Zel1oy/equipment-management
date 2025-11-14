@@ -1,0 +1,37 @@
+@model IEnumerable<PstInventory.Core.model.Equipment>
+
+@{
+    ViewData["Title"] = "Equipment List";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Equipment</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Inventory Number</th>
+        <th>Status</th>
+        <th>Category</th> <th>Location</th> <th>Assigned To</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.InventoryNumber)</td>
+            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+            <td>@Html.DisplayFor(modelItem => item.Category.Name)</td> <td>@Html.DisplayFor(modelItem => item.Location.Name)</td> <td>@Html.DisplayFor(modelItem => item.AssignedTo)</td>
+            <td class="text-nowrap">
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

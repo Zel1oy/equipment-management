@@ -1,17 +1,39 @@
-# Step 1: Start with an official base image that already has the .NET 8 SDK and Linux.
-# This saves us from having to install .NET manually.
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+# Stage 1: Build the application
+# Use the official .NET SDK image, which includes all tools needed to build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /source
 
-# Step 2: Install Git inside the container.
-# The 'RUN' command executes shell commands during the build process.
-RUN apt-get update && apt-get install -y git
+# Copy the solution file and project files first
+# This optimizes Docker's layer caching - dependencies are only restored if project files change
+COPY *.sln .
+COPY PstInventory.Core/*.csproj ./PstInventory.Core/
+COPY PstInventory.Infrastructure/*.csproj ./PstInventory.Infrastructure/
+COPY PstInventory.WebApp/*.csproj ./PstInventory.WebApp/
 
-# Step 3: Set the working directory inside the container.
+# Restore dependencies for all projects
+RUN dotnet restore
+
+# Copy the rest of the source code
+COPY . .
+
+# Build and publish the WebApp in Release configuration
+# The output will be placed in /app/publish
+WORKDIR /source/PstInventory.WebApp
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+
+# Stage 2: Create the final runtime image
+# Use the lightweight ASP.NET runtime image, which doesn't include the SDK
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Step 4: Clone your project repository into the container's /app directory.
-RUN git clone https://github.com/Zel1oy/equipment-management.git .
+# Copy the published application from the build stage
+COPY --from=build /app/publish .
 
-# Step 5: Set the default command to run when the container starts.
-# This will change into your console app's directory and run it.
-CMD ["sh", "-c", "cd PstInventory.ConsoleUI && dotnet run"]
+# Expose the standard ASP.NET Core ports used inside containers
+# 8080 for HTTP, 8081 for HTTPS (these are defaults, your app might configure others)
+EXPOSE 8080
+EXPOSE 8081
+
+# Set the entry point - command to run when the container starts
+ENTRYPOINT ["dotnet", "PstInventory.WebApp.dll"]

@@ -151,4 +151,14 @@ public class EquipmentController(EquipmentService equipmentService, AppDbContext
             return RedirectToAction(nameof(Delete), new { id });
         }
     }
+    public IActionResult ApiV1Demo()
+    {
+        return View();
+    }
+
+    public IActionResult ApiV2Demo()
+    {
+        return View();
+    }
+
 }

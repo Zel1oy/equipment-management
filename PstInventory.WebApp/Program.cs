@@ -46,13 +46,13 @@ builder.Services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
 builder.Services.AddScoped<EquipmentService>();
 
 // Auth0
-builder.Services
-    .AddAuth0WebAppAuthentication(options =>
-    {
-        options.Domain = builder.Configuration["Auth0:Domain"];
-        options.ClientId = builder.Configuration["Auth0:ClientId"];
-        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
-    });
+//builder.Services
+//    .AddAuth0WebAppAuthentication(options =>
+//    {
+//        options.Domain = builder.Configuration["Auth0:Domain"];
+//        options.ClientId = builder.Configuration["Auth0:ClientId"];
+//        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+//    });
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen();   // без OpenApiInfo
 var app = builder.Build();
 
 // міграції
-using (var scope = app.Services.CreateScope())
+/*using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
@@ -84,7 +84,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.EnsureCreated();
         logger.LogInformation("In-Memory database created and seeded.");
     }
-}
+}*/
 
 // pipeline
 if (app.Environment.IsDevelopment())
@@ -108,8 +108,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

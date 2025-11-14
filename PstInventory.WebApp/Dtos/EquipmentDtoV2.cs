@@ -2,6 +2,6 @@
 
 public class EquipmentDtoV2 : EquipmentDtoV1
 {
-    // додаткове поле для нової версії API
-    public string? Details { get; set; }
+    public DateTime DateOfPurchase { get; set; }   // нового не було у v1-відповіді
+    public string? Details { get; set; }           // узагальнена інфа (опціонально)
 }

@@ -1,48 +1,109 @@
 ﻿@{
-    ViewData["Title"] = "Welcome";
+    ViewData["Title"] = "Система управління та обліку обладнання – Лабораторна №5";
 }
 
-<div class="container mt-4">
-    <div class="p-5 mb-4 bg-light rounded-3">
-        <div class="container-fluid py-5">
+<div class="container py-5">
+
+    <!-- Головний заголовок -->
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+        <div class="container-fluid py-4">
             <h1 class="display-5 fw-bold">Система управління та обліку обладнання</h1>
-            <p class="col-md-10 fs-4">
-                Ласкаво просимо до веб-додатку, розробленого в рамках лабораторної роботи №3.
+            <p class="fs-5 mt-3">
+                Ласкаво просимо до веб-застосунку, розробленого в рамках
+                <strong>Лабораторної роботи №5</strong> з дисципліни
+                «Об’єктно-орієнтоване конструювання програм / Веб-технології».
             </p>
-            <p>
-                Цей проект є ASP.NET Core MVC-системою, призначеною для управління та обліку технічного обладнання кафедри.
+            <p class="fs-6 text-muted">
+                Цей проєкт демонструє роботу з RESTFul API, версіонуванням, Swagger-документацією,
+                кількома СКБД та інтеграційними тестами на прикладі системи обліку технічного
+                обладнання кафедри.
             </p>
         </div>
     </div>
 
-    <div class="row">
+    <!-- Дві колонки: Про проєкт / Вимоги ЛР-5 -->
+    <div class="row g-4 mb-5">
         <div class="col-md-6">
-            <h2>Про проект</h2>
-            <p>
-                Цей додаток демонструє ключові принципи сучасної веб-розробки на .NET, включаючи:
-            </p>
-            <ul>
-                <li><strong>Clean Architecture:</strong> Чітке розділення логіки, даних та UI.</li>
-                <li><strong>Entity Framework Core:</strong> Робота з базою даних (SQLite) за допомогою Code-First підходу.</li>
-                <li><strong>Repository & Unit of Work:</strong> Професійні патерни для доступу до даних.</li>
-                <li><strong>Безпека (OAuth2):</strong> Автентифікація користувачів через зовнішній провайдер (Auth0/Okta).</li>
-            </ul>
+            <div class="h-100 p-4 border rounded-3 shadow-sm">
+                <h2 class="h4 mb-3">Про проєкт</h2>
+                <p>
+                    Застосунок побудований за підходом <strong>Clean Architecture</strong> та розділений на
+                    декілька шарів:
+                </p>
+                <ul>
+                    <li><strong>PstInventory.Core</strong> – доменна логіка, моделі, сервіси, інтерфейси репозиторіїв;</li>
+                    <li><strong>PstInventory.Infrastructure</strong> – реалізації доступу до даних (EF Core, різні БД);</li>
+                    <li><strong>PstInventory.WebApp</strong> – веб-інтерфейс (MVC + REST API, Swagger).</li>
+                </ul>
+                <p>
+                    Для зберігання даних використовується <strong>Entity Framework Core</strong> із можливістю
+                    перемикати провайдер бази даних (InMemory, SQLite, SQL Server, PostgreSQL) через налаштування.
+                </p>
+            </div>
         </div>
+
         <div class="col-md-6">
-            <h2>Вимоги Лабораторної №3</h2>
-            <p>
-                Цей додаток виконує наступні вимоги:
-            </p>
-            <ol>
-                <li>Сторінка привітання.</li>
-                <li>Сторінки входу, реєстрації та профілю користувача (через Auth0).</li>
-                <li>Захищені сторінки для роботи з обладнанням (Create, Read, Update, Delete).</li>
-                <li>Вимоги до форми реєстрації (логін, пароль, ПІБ, телефон) налаштовані в Auth0.</li>
-            </ol>
-            <p>
-                Щоб розпочати роботу, будь ласка, увійдіть в систему, використовуючи кнопку "Login" у верхньому правому куті.
-            </p>
-            <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Login">Почати роботу (Login) &raquo;</a>
+            <div class="h-100 p-4 border rounded-3 shadow-sm">
+                <h2 class="h4 mb-3">Вимоги Лабораторної №5</h2>
+                <p>У рамках цієї роботи реалізовано:</p>
+                <ol class="mb-0">
+                    <li>RESTFul API для роботи з обладнанням (створення, читання, оновлення, видалення).</li>
+                    <li>
+                        Дві версії API:
+                        <strong>v1</strong> та <strong>v2</strong>, де v2 розширює v1 та зберігає сумісність.
+                    </li>
+                    <li>Документація та тестування запитів за допомогою <strong>Swagger UI</strong>.</li>
+                    <li>
+                        Дві сторінки графічного інтерфейсу:
+                        одна для «старої» версії інтерфейсу, друга – для нової,
+                        обидві працюють з останньою версією API.
+                    </li>
+                    <li>
+                        Можливість використання кількох СКБД (InMemory, SQLite, SQL Server, PostgreSQL)
+                        через конфігурацію <code>DatabaseProvider</code>.
+                    </li>
+                    <li>Інтеграційні тести для REST-контролерів (можна запускати окремо з тестового проєкту або постман-колекції).</li>
+                </ol>
+            </div>
         </div>
     </div>
+
+    <!-- Блок "Швидкий старт" з кнопками -->
+    <div class="p-4 mb-4 border rounded-3 shadow-sm">
+        <h2 class="h4 mb-3">Швидкий старт демо</h2>
+        <p class="mb-3">
+            Для перевірки результатів ЛР-5 можна скористатись наступними посиланнями:
+        </p>
+        <div class="row g-3">
+            <div class="col-md-4 d-grid">
+                <a class="btn btn-primary" href="/swagger" target="_blank">
+                    Відкрити Swagger (REST API)
+                </a>
+            </div>
+            <div class="col-md-4 d-grid">
+                <a class="btn btn-outline-secondary" href="/Equipment/ApiV1Demo">
+                    Сторінка інтерфейсу (старий вигляд, v1)
+                </a>
+            </div>
+            <div class="col-md-4 d-grid">
+                <a class="btn btn-outline-success" href="/Equipment/ApiV2Demo">
+                    Сторінка інтерфейсу (новий вигляд, v2)
+                </a>
+            </div>
+        </div>
+
+        <p class="mt-3 text-muted small">
+            За потреби провайдера бази даних можна змінити у файлі
+            <code>appsettings.json</code> (ключ <code>DatabaseProvider</code>),
+            після чого перезапустити застосунок.
+        </p>
+    </div>
+
+    <!-- Невеликий футер про викладача/студента, якщо хочеш -->
+    <div class="text-muted small">
+        <p class="mb-0">
+            Демонстраційний проєкт для Лабораторної роботи №5.
+        </p>
+    </div>
+
 </div>

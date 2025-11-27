@@ -3,12 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using PstInventory.Core.repository;
 using PstInventory.Core.service;
 using PstInventory.Infrastructure.Data;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 string? provider = builder.Configuration["DatabaseProvider"];
 string migrationsAssembly = "PstInventory.Infrastructure";
 
+// ---------- Р‘Р” ----------
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     switch (provider)
@@ -41,66 +46,57 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// репозиторій + сервіс
+// ---------- Р РµРїРѕР·РёС‚РѕСЂС–С— + СЃРµСЂРІС–СЃРё ----------
 builder.Services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
 builder.Services.AddScoped<EquipmentService>();
 
-// Auth0
-//builder.Services
-//    .AddAuth0WebAppAuthentication(options =>
-//    {
-//        options.Domain = builder.Configuration["Auth0:Domain"];
-//        options.ClientId = builder.Configuration["Auth0:ClientId"];
-//        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
-//    });
-
-// MVC
+// ---------- MVC + Swagger ----------
 builder.Services.AddControllersWithViews();
-
-// Swagger
-
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();   // без OpenApiInfo
+builder.Services.AddSwaggerGen();
 
+// ---------- OpenTelemetry ----------
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("PstInventory.WebApp"))
+    .WithTracing(tracer =>
+    {
+        tracer
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(o =>
+            {
+                // С‰РѕР± Сѓ С‚СЂРµР№СЃР°С… Р±СѓР»Рѕ РІРёРґРЅРѕ SQL
+                o.SetDbStatementForText = true;
+            })
+            .AddSource("PstInventory.WebApp")
+            .AddZipkinExporter(o =>
+            {
+                // РІР°Р¶Р»РёРІРѕ: РїРѕСЂС‚ 9411, С€Р»СЏС… /api/v2/spans
+                o.Endpoint = new Uri("http://localhost:9411/api/v2/spans");
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddRuntimeInstrumentation()        // GC, heap С– С‚.Рґ.
+            .AddAspNetCoreInstrumentation()
+            .AddPrometheusExporter();
+    });
 
 var app = builder.Build();
 
-// міграції
-/*using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    var context = services.GetRequiredService<AppDbContext>();
-
-    if (!context.Database.IsInMemory())
-    {
-        logger.LogInformation("Attempting to apply database migrations...");
-        context.Database.Migrate();
-        logger.LogInformation("Database migrations applied successfully.");
-    }
-    else
-    {
-        logger.LogInformation("Using In-Memory database. Ensuring database is created...");
-        context.Database.EnsureCreated();
-        logger.LogInformation("In-Memory database created and seeded.");
-    }
-}*/
-
-// pipeline
+// ---------- Pipeline ----------
 if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
-            
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v2");
-        });
-    }
-
-    else
-    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
+    });
+}
+else
+{
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
@@ -110,16 +106,21 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseRouting();
-
-// НІЯКОГО auth, усе відкрито — цього достатньо для ЛР-5
+// СЏРєС‰Рѕ auth РІРёРјРєРЅРµРЅР° вЂ” С†С– РґРІР° РјРѕР¶РЅР° Р»РёС€РёС‚Рё Р·Р°РєРѕРјРµРЅС‚РѕРІР°РЅРёРјРё
 // app.UseAuthentication();
 // app.UseAuthorization();
 
+// endpoint РґР»СЏ Prometheus (РЅР°  /metrics)
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
 app.Run();
+
+// --------- ActivitySource РґР»СЏ СЃРІРѕС—С… span-С–РІ ---------
+public static class Telemetry
+{
+    public static readonly ActivitySource ActivitySource = new("PstInventory.WebApp");
+}

@@ -15,9 +15,17 @@ public class HomeController : Controller
     }
 
     public IActionResult Index()
-    {
-        return View();
-    }
+{
+    using var activity = Telemetry.ActivitySource.StartActivity("HomePageLoad");
+
+    activity?.AddTag("user.role", "guest");
+    activity?.AddTag("page", "home");
+
+    Thread.Sleep(150); // симуляція довгої операції
+
+    return View();
+}
+
 
     public IActionResult Privacy()
     {

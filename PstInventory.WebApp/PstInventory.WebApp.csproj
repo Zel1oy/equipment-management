@@ -1,26 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <UserSecretsId>f1a12ead-e7da-4627-99b7-ab0b1ffb83ef</UserSecretsId>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <UserSecretsId>f1a12ead-e7da-4627-99b7-ab0b1ffb83ef</UserSecretsId>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\PstInventory.Core\PstInventory.Core.csproj" />
-      <ProjectReference Include="..\PstInventory.Infrastructure\PstInventory.Infrastructure.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PstInventory.Core\PstInventory.Core.csproj" />
+    <ProjectReference Include="..\PstInventory.Infrastructure\PstInventory.Infrastructure.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.5.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Microsoft.OpenApi" Version="3.0.0" />
-      <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.5.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="3.0.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.14.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- OpenTelemetry базове -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
+
+    <!-- Інструментація ASP.NET Core та HTTP -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
+
+    <!-- Інструментація SQL-клієнта (тільки preview-версія доступна) -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.9.0-beta.1" />
+
+    <!-- Експортер Prometheus (також preview) -->
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.9.0-alpha.1" />
+
+    <!-- Метрики рантайму .NET -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.1" />
+  </ItemGroup>
 
 </Project>

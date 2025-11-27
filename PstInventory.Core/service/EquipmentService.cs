@@ -1,8 +1,28 @@
 using PstInventory.Core.enums;
 using PstInventory.Core.model;
 using PstInventory.Core.repository;
+using System.Diagnostics;
+
+
 
 namespace PstInventory.Core.service;
+
+public static readonly ActivitySource ActivitySource = 
+    new ActivitySource("PstInventory");
+
+public void AddEquipment(... )
+{
+    using var activity = ActivitySource.StartActivity("AddEquipment-long-operation");
+
+    activity?.SetTag("equipment.name", name);
+    activity?.SetTag("equipment.categoryId", categoryId);
+    activity?.SetTag("user.name", assignedTo);
+
+    // імітація довгої операції
+    Thread.Sleep(2000); 
+
+    // основна логіка збереження в БД
+}
 
 public class EquipmentService(IEquipmentRepository repository)
 {

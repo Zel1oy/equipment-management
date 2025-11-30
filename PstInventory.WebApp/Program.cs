@@ -7,8 +7,25 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using System.Diagnostics;
+using Serilog;
+using Serilog.Sinks.Elasticsearch;
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Elasticsearch(
+        new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = "pstinventory-logs-{0:yyyy.MM.dd}"
+        })
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// використовуємо Serilog замість стандартного логера
+builder.Host.UseSerilog();
+
+
 
 string? provider = builder.Configuration["DatabaseProvider"];
 string migrationsAssembly = "PstInventory.Infrastructure";
@@ -77,10 +94,10 @@ builder.Services.AddOpenTelemetry()
     })
     .WithMetrics(metrics =>
     {
-        metrics
-            .AddRuntimeInstrumentation()        // GC, heap і т.д.
-            .AddAspNetCoreInstrumentation()
-            .AddPrometheusExporter();
+           metrics
+    .AddAspNetCoreInstrumentation()
+    .AddPrometheusExporter();
+
     });
 
 var app = builder.Build();

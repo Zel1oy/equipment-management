@@ -1,50 +1,54 @@
+using System.Diagnostics;
+using System.Threading;
 using PstInventory.Core.enums;
 using PstInventory.Core.model;
 using PstInventory.Core.repository;
-using System.Diagnostics;
-
-
 
 namespace PstInventory.Core.service;
 
-public static readonly ActivitySource ActivitySource = 
-    new ActivitySource("PstInventory");
-
-public void AddEquipment(... )
+public class EquipmentService
 {
-    using var activity = ActivitySource.StartActivity("AddEquipment-long-operation");
+    // ActivitySource для додаткового SPAN (п.3 лабораторної)
+    private static readonly ActivitySource ActivitySource =
+        new("PstInventory.EquipmentService");
 
-    activity?.SetTag("equipment.name", name);
-    activity?.SetTag("equipment.categoryId", categoryId);
-    activity?.SetTag("user.name", assignedTo);
+    private readonly IEquipmentRepository _repository;
 
-    // імітація довгої операції
-    Thread.Sleep(2000); 
+    public EquipmentService(IEquipmentRepository repository)
+    {
+        _repository = repository;
+    }
 
-    // основна логіка збереження в БД
-}
-
-public class EquipmentService(IEquipmentRepository repository)
-{
     public IEnumerable<Equipment> GetAllEquipment()
     {
-        return repository.GetAll();
+        return _repository.GetAll();
     }
-    
+
     public Equipment? GetEquipmentById(int id)
     {
-        return repository.GetById(id);
+        return _repository.GetById(id);
     }
 
+    // Довга операція + додаткові теги для трейсингу
     public void AddEquipment(string name, string inventoryNumber, int locationId, int categoryId, string assignedTo)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Equipment name cannot be empty.");
-        
-        if (string.IsNullOrWhiteSpace(inventoryNumber))
-            throw new ArgumentException("Inventory number cannot be empty.");
+        using var activity = ActivitySource.StartActivity("AddEquipment-long-operation");
 
-        var existing = repository.FindByInventoryNumber(inventoryNumber);
+        activity?.SetTag("equipment.name", name);
+        activity?.SetTag("equipment.categoryId", categoryId);
+        activity?.SetTag("user.name", assignedTo);
+
+        // імітація довгої операції (п.3b)
+        Thread.Sleep(2000);
+
+        // валідації
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Equipment name cannot be empty.", nameof(name));
+
+        if (string.IsNullOrWhiteSpace(inventoryNumber))
+            throw new ArgumentException("Inventory number cannot be empty.", nameof(inventoryNumber));
+
+        var existing = _repository.FindByInventoryNumber(inventoryNumber);
         if (existing != null)
             throw new InvalidOperationException($"An item with inventory number '{inventoryNumber}' already exists.");
 
@@ -58,37 +62,35 @@ public class EquipmentService(IEquipmentRepository repository)
             DateOfPurchase = DateTime.UtcNow,
             Status = EquipmentStatus.InStock
         };
-        
-        repository.Add(newItem);
+
+        _repository.Add(newItem);
     }
 
     public void UpdateEquipment(Equipment equipment)
     {
         if (equipment == null)
             throw new ArgumentNullException(nameof(equipment));
-    
+
         if (string.IsNullOrWhiteSpace(equipment.Name))
             throw new ArgumentException("Equipment name cannot be empty.");
 
-        var existing = repository.GetById(equipment.Id);
+        var existing = _repository.GetById(equipment.Id);
         if (existing == null)
             throw new InvalidOperationException($"No equipment found with ID {equipment.Id} to update.");
-    
-        var conflicting = repository.FindByInventoryNumber(equipment.InventoryNumber);
+
+        var conflicting = _repository.FindByInventoryNumber(equipment.InventoryNumber);
         if (conflicting != null && conflicting.Id != equipment.Id)
             throw new InvalidOperationException($"An item with inventory number '{equipment.InventoryNumber}' already exists.");
 
-        repository.Update(equipment);
+        _repository.Update(equipment);
     }
 
     public void DeleteEquipment(int id)
     {
-        var equipment = repository.GetById(id);
+        var equipment = _repository.GetById(id);
         if (equipment == null)
-        {
             throw new InvalidOperationException($"No equipment found with ID {id} to delete.");
-        }
-        
-        repository.Delete(equipment);
+
+        _repository.Delete(equipment);
     }
 }

@@ -3,12 +3,34 @@ using Microsoft.EntityFrameworkCore;
 using PstInventory.Core.repository;
 using PstInventory.Core.service;
 using PstInventory.Infrastructure.Data;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using System.Diagnostics;
+using Serilog;
+using Serilog.Sinks.Elasticsearch;
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Elasticsearch(
+        new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = "pstinventory-logs-{0:yyyy.MM.dd}"
+        })
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// використовуємо Serilog замість стандартного логера
+builder.Host.UseSerilog();
+
+
 
 string? provider = builder.Configuration["DatabaseProvider"];
 string migrationsAssembly = "PstInventory.Infrastructure";
 
+// ---------- БД ----------
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     switch (provider)
@@ -41,66 +63,57 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// ���������� + �����
+// ---------- Репозиторії + сервіси ----------
 builder.Services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
 builder.Services.AddScoped<EquipmentService>();
 
-// Auth0
-//builder.Services
-//    .AddAuth0WebAppAuthentication(options =>
-//    {
-//        options.Domain = builder.Configuration["Auth0:Domain"];
-//        options.ClientId = builder.Configuration["Auth0:ClientId"];
-//        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
-//    });
-
-// MVC
+// ---------- MVC + Swagger ----------
 builder.Services.AddControllersWithViews();
-
-// Swagger
-
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();   // ��� OpenApiInfo
+builder.Services.AddSwaggerGen();
 
+// ---------- OpenTelemetry ----------
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("PstInventory.WebApp"))
+    .WithTracing(tracer =>
+    {
+        tracer
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(o =>
+            {
+                // щоб у трейсах було видно SQL
+                o.SetDbStatementForText = true;
+            })
+            .AddSource("PstInventory.WebApp")
+            .AddZipkinExporter(o =>
+            {
+                // важливо: порт 9411, шлях /api/v2/spans
+                o.Endpoint = new Uri("http://localhost:9411/api/v2/spans");
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+           metrics
+    .AddAspNetCoreInstrumentation()
+    .AddPrometheusExporter();
+
+    });
 
 var app = builder.Build();
 
-// �������
-/*using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    var context = services.GetRequiredService<AppDbContext>();
-
-    if (!context.Database.IsInMemory())
-    {
-        logger.LogInformation("Attempting to apply database migrations...");
-        context.Database.Migrate();
-        logger.LogInformation("Database migrations applied successfully.");
-    }
-    else
-    {
-        logger.LogInformation("Using In-Memory database. Ensuring database is created...");
-        context.Database.EnsureCreated();
-        logger.LogInformation("In-Memory database created and seeded.");
-    }
-}*/
-
-// pipeline
+// ---------- Pipeline ----------
 if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
-            
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v2");
-        });
-    }
-
-    else
-    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Equipment API v1");
+    });
+}
+else
+{
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
@@ -110,16 +123,21 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseRouting();
-
-// Ͳ����� auth, ��� ������� � ����� ��������� ��� ��-5
+// якщо auth вимкнена — ці два можна лишити закоментованими
 // app.UseAuthentication();
 // app.UseAuthorization();
 
+// endpoint для Prometheus (на  /metrics)
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
 app.Run();
+
+// --------- ActivitySource для своїх span-ів ---------
+public static class Telemetry
+{
+    public static readonly ActivitySource ActivitySource = new("PstInventory.WebApp");
+}
